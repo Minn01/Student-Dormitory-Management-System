@@ -18,6 +18,8 @@ public class StudentDormitoryManagementSystem {
         System.out.println("Hello World!!");
         DBConnect dbc = new DBConnect();
         
+        StudentManager studentManager = new StudentManager(dbc);
+        studentManager.addStudent(6612012, "Min Thant", "u6612012@au.edu", "082-363-1352", "082-363-1352");
     }
     
 }
