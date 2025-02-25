@@ -30,15 +30,15 @@ public class RoomAllocationManager {
     // Assign a room to a student (auto-generates allocation_id)
     public int assignRoom(int room_id, int student_id) {
         int result = 0;
-        int newAllocationId = idGen.getNextId("Room_allocation", "allocation_id");
-        String sql = "INSERT INTO Room_allocation (allocation_id, start_date, status, room_id, student_id) VALUES (?,?,?,?,?)";
+        // Use the correct table name "Room_Allocation" as per your DDL.
+        String sql = "INSERT INTO Room_Allocation (allocation_id, check_in_date, room_id, student_id) VALUES (?,?,?,?)";
         try {
+            int newAllocationId = idGen.getNextId("Room_Allocation", "allocation_id");
             PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.setInt(1, newAllocationId);
-            stmt.setDate(2, new Date(System.currentTimeMillis()));
-            stmt.setString(3, "Active");
-            stmt.setInt(4, room_id);
-            stmt.setInt(5, student_id);
+            stmt.setDate(2, new Date(System.currentTimeMillis())); // using check_in_date
+            stmt.setInt(3, room_id);
+            stmt.setInt(4, student_id);
             result = stmt.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(RoomAllocationManager.class.getName()).log(Level.SEVERE, null, ex);

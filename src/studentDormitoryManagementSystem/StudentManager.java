@@ -36,6 +36,7 @@ public class StudentManager {
             stmt.setString(3, email);
             stmt.setString(4, phone);
             stmt.setString(5, emergency_contact);
+
             result = stmt.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(StudentManager.class.getName()).log(Level.SEVERE, null, ex);
