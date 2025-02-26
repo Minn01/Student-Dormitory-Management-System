@@ -24,7 +24,7 @@ public class PaymentDetailDialog extends JDialog {
         setSize(400,300);
         setLocationRelativeTo(owner);
         initComponents();
-    }
+    }   
     
     private void initComponents(){
         JPanel panel = new JPanel(new BorderLayout(10,10));

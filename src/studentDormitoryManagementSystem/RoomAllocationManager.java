@@ -72,4 +72,25 @@ public class RoomAllocationManager {
         }
         return result;
     }
+    
+    public int checkoutStudent(int student_id) {
+        int result = 0;
+        String sqlUpdateAllocation = "UPDATE Room_Allocation SET check_out_date = ? WHERE student_id = ? AND check_out_date IS NULL";
+        String sqlUpdateRoom = "UPDATE Rooms SET status = 'Available' WHERE room_id = (SELECT room_id FROM Room_Allocation WHERE student_id = ? AND check_out_date IS NULL)";
+
+        try {
+            PreparedStatement stmtAllocation = connection.prepareStatement(sqlUpdateAllocation);
+            stmtAllocation.setDate(1, new Date(System.currentTimeMillis()));
+            stmtAllocation.setInt(2, student_id);
+            result = stmtAllocation.executeUpdate();
+
+            PreparedStatement stmtRoom = connection.prepareStatement(sqlUpdateRoom);
+            stmtRoom.setInt(1, student_id);
+            stmtRoom.executeUpdate();
+
+        } catch (SQLException ex) {
+            Logger.getLogger(RoomAllocationManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
 }

@@ -46,17 +46,18 @@ public class RoomManager {
     }
 
     // Update room status (e.g., mark as 'Occupied' or 'Available')
-    public int updateRoomStatus(int room_id, String status) {
+    public int updateRoomStatus(int roomId, String status) {
         int result = 0;
-        String sql = "UPDATE Room SET status = ? WHERE room_id = ?";
-
-        try {
-            PreparedStatement stmt = connection.prepareStatement(sql);
+        // Use the table name "ROOMS" as defined in your DDL.
+        String sql = "UPDATE ROOMS SET status = ? WHERE room_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, status);
-            stmt.setInt(2, room_id);
+            stmt.setInt(2, roomId);
             result = stmt.executeUpdate();
+            System.out.println("DEBUG: Room status updated to " + status + " for room_id " + roomId);
         } catch (SQLException ex) {
             Logger.getLogger(RoomManager.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("DEBUG: Error updating room status: " + ex.getMessage());
         }
         return result;
     }

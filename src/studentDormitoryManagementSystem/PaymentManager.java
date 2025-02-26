@@ -4,7 +4,6 @@
  */
 package studentDormitoryManagementSystem;
 
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -16,6 +15,7 @@ import java.util.logging.Logger;
  *
  * @author min
  */
+
 public class PaymentManager {
     private Connection connection;
     private DBConnect dbc;
@@ -27,23 +27,52 @@ public class PaymentManager {
         this.idGen = new IdGenerator(connection);
     }
 
-    // Process a payment, auto-generating payment_id
-    public int processPayment(double amount, String receipt_number, int student_id, int type_id) {
-        int result = 0;
+    // Insert a new payment
+    public int addPayment(double amount, String receiptNumber, int studentId, String paymentType, Date paymentDate) {
         int newPaymentId = idGen.getNextId("Payment", "payment_id");
-        String sql = "INSERT INTO Payment (payment_id, amount, payment_date, receipt_number, student_id, type_id) VALUES (?,?,?,?,?,?)";
-        try {
-            PreparedStatement stmt = connection.prepareStatement(sql);
+        String sql = "INSERT INTO Payment (payment_id, amount, payment_date, receipt_number, student_id, payment_type) VALUES (?,?,?,?,?,?)";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, newPaymentId);
             stmt.setDouble(2, amount);
-            stmt.setDate(3, new Date(System.currentTimeMillis()));
-            stmt.setString(4, receipt_number);
-            stmt.setInt(5, student_id);
-            stmt.setInt(6, type_id);
-            result = stmt.executeUpdate();
+            stmt.setDate(3, paymentDate != null ? paymentDate : new Date(System.currentTimeMillis()));
+            stmt.setString(4, receiptNumber);
+            stmt.setInt(5, studentId);
+            stmt.setString(6, paymentType);
+
+            return stmt.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(PaymentManager.class.getName()).log(Level.SEVERE, null, ex);
+            return 0;
         }
-        return result;
+    }
+
+    // Update an existing payment
+    public int updatePayment(int paymentId, double amount, String receiptNumber, int studentId, String paymentType, Date paymentDate) {
+        String sql = "UPDATE Payment SET amount = ?, payment_date = ?, receipt_number = ?, student_id = ?, payment_type = ? WHERE payment_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setDouble(1, amount);
+            stmt.setDate(2, paymentDate);
+            stmt.setString(3, receiptNumber);
+            stmt.setInt(4, studentId);
+            stmt.setString(5, paymentType);
+            stmt.setInt(6, paymentId);
+
+            return stmt.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(PaymentManager.class.getName()).log(Level.SEVERE, null, ex);
+            return 0;
+        }
+    }
+
+    // Delete a payment
+    public int deletePayment(int paymentId) {
+        String sql = "DELETE FROM Payment WHERE payment_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, paymentId);
+            return stmt.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(PaymentManager.class.getName()).log(Level.SEVERE, null, ex);
+            return 0;
+        }
     }
 }

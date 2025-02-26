@@ -54,8 +54,30 @@ public class DBConnect {
     }
 
     public Connection getConnection() {
+        try {
+            if (connection == null || connection.isClosed()) {
+                System.out.println("Reconnecting to the database...");
+                reconnect();
+            }
+        } catch (SQLException e) {
+            System.err.println("Error checking connection: " + e.getMessage());
+        }
         return connection;
     }
+
+    private void reconnect() {
+        try {
+            if (ods == null) {
+                ods = new OracleDataSource();
+                ods.setURL("jdbc:oracle:thin:" + username + "/" + password + "@" + db_server + ":4421/orcl");
+            }
+            connection = ods.getConnection();
+            System.out.println("Reconnection successful.");
+        } catch (SQLException e) {
+            System.err.println("Reconnection failed: " + e.getMessage());
+        }
+    }
+
 
     public void setConnection(Connection connection) {
         this.connection = connection;

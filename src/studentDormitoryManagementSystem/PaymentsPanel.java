@@ -22,6 +22,7 @@ public class PaymentsPanel extends JPanel {
     private DefaultTableModel tableModel;
     private TableRowSorter<DefaultTableModel> sorter;
     private JTextField searchField;
+    private JButton addPaymentButton;
     
     public PaymentsPanel(DBConnect dbc) {
         this.dbc = dbc;
@@ -33,10 +34,14 @@ public class PaymentsPanel extends JPanel {
         topPanel.add(new JLabel("Search:"));
         searchField = new JTextField(20);
         topPanel.add(searchField);
+        
+        addPaymentButton = new JButton("Add Payment");
+        topPanel.add(addPaymentButton);
+        
         add(topPanel, BorderLayout.NORTH);
         
         // Table model and table
-        tableModel = new DefaultTableModel(new String[]{"Payment ID", "Amount", "Date", "Student ID"}, 0) {
+        tableModel = new DefaultTableModel(new String[]{"Payment ID", "Amount", "Date", "Student ID", "Status"}, 0) {
             public boolean isCellEditable(int row, int column) { return false; }
         };
         table = new JTable(tableModel);
@@ -76,23 +81,41 @@ public class PaymentsPanel extends JPanel {
                 }
             }
         });
+        
+        // Handle adding payments
+        addPaymentButton.addActionListener(e -> openPaymentDialog());
     }
     
-    private void loadPaymentData(){
-        tableModel.setRowCount(0);
-        // Assuming Payment table has columns: payment_id, amount, payment_date, student_id
-        String sql = "SELECT payment_id, amount, payment_date, student_id FROM Payment ORDER BY payment_date DESC";
-        try(Statement stmt = dbc.getConnection().createStatement();
-            ResultSet rs = stmt.executeQuery(sql)) {
-            while(rs.next()){
+    private void loadPaymentData() {
+        tableModel.setRowCount(0);  // Clear table before loading
+
+        String sql = "SELECT payment_id, amount, payment_date, student_id, " +
+                     "CASE WHEN payment_date < CURRENT_DATE THEN 'Late' ELSE 'On Time' END AS status " +
+                     "FROM Payment ORDER BY payment_date DESC";
+
+        try (Statement stmt = dbc.getConnection().createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
                 int pid = rs.getInt("payment_id");
                 double amount = rs.getDouble("amount");
-                Date date = rs.getDate("payment_date");
+                Date date = rs.getDate("payment_date");  // Ensure it's retrieved as Date
                 int studentId = rs.getInt("student_id");
-                tableModel.addRow(new Object[]{pid, amount, date, studentId});
+                String status = rs.getString("status");
+
+                tableModel.addRow(new Object[]{pid, amount, date, studentId, status});
             }
-        } catch(SQLException ex) {
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();  // Debugging output
             JOptionPane.showMessageDialog(this, "Error loading payments: " + ex.getMessage());
         }
+    }
+
+    
+    private void openPaymentDialog() {
+        PaymentEntryDialog dialog = new PaymentEntryDialog(SwingUtilities.getWindowAncestor(this), dbc);
+        dialog.setVisible(true);
+        loadPaymentData(); // Refresh table after adding a payment
     }
 }
